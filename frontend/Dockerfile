@@ -13,8 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. 소스 코드 복사
 COPY . .
 
-# 6. 포트 오픈 (문서용)
-EXPOSE 8000
+# 6. Streamlit 포트
+EXPOSE 8501
 
-# 7. FastAPI 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# 7. Streamlit 실행
+CMD ["streamlit", "run", "main.py", "--server.address=0.0.0.0", "--server.port=8501"]
