@@ -47,3 +47,38 @@ cache/
 
 # PyCharm
 .idea/
+
+# ==========================================
+# Node.js / Next.js (아래 내용 추가!)
+# ==========================================
+
+# Dependencies
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+
+# Testing
+frontend/coverage
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+
+# Production build
+frontend/build
+
+# Debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# Local env files (Next.js)
+frontend/.env*.local
+
+# Vercel
+frontend/.vercel
+
+# TypeScript
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts

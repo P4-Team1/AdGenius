@@ -1,20 +1,39 @@
-# 1. Python 베이스 이미지
-FROM python:3.12-slim
-
-# 2. 작업 디렉토리 설정
+# 1단계: 의존성 설치
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# 3. 의존성 파일 복사
-COPY requirements.txt .
+# package.json과 lock 파일 복사
+COPY package*.json ./
+RUN npm ci
 
-# 4. 의존성 설치
-RUN pip install --no-cache-dir -r requirements.txt
+# 2단계: 빌드
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# 5. 소스 코드 복사
+# 의존성 복사
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 6. Streamlit 포트
-EXPOSE 8501
+# Next.js 빌드
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
 
-# 7. Streamlit 실행
-CMD ["streamlit", "run", "main.py", "--server.address=0.0.0.0", "--server.port=8501"]
+# 3단계: 실행
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# 필요한 파일만 복사
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# 포트 노출
+EXPOSE 3000
+
+ENV PORT=3000
+
+# 실행
+CMD ["node", "server.js"]
