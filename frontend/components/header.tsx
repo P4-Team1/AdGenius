@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useTheme } from '@/lib/use-theme'
+import { useTheme } from '@/hooks/use-theme'
+import { useAuth } from '@/contexts/auth-context'
 import { ReactNode } from 'react'
 
 interface HeaderProps {
@@ -12,34 +13,39 @@ interface HeaderProps {
 export function Header({ showMenu = false, rightButtons }: HeaderProps) {
   const router = useRouter()
   const { theme, toggleTheme, mounted } = useTheme()
+  const { isAuthenticated } = useAuth()
+
+  const handleLogoClick = () => {
+    router.push(isAuthenticated ? '/dashboard' : '/')
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div 
-          onClick={() => router.push('/')}
+        <div
+          onClick={handleLogoClick}
           className="text-2xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
         >
           AdGenius
         </div>
-        
+
         <div className="flex items-center gap-6">
           {/* 홈 페이지 메뉴 (showMenu가 true일 때만) */}
           {showMenu && (
             <div className="hidden md:flex gap-6">
-              <a 
+              <a
                 href="/#features"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
                 기능
               </a>
-              <a 
+              <a
                 href="/#platforms"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
                 플랫폼
               </a>
-              <a 
+              <a
                 href="/#pricing"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
@@ -47,14 +53,14 @@ export function Header({ showMenu = false, rightButtons }: HeaderProps) {
               </a>
             </div>
           )}
-          
+
           {/* 커스텀 버튼 영역 */}
           {rightButtons && (
             <div className="flex items-center gap-4">
               {rightButtons}
             </div>
           )}
-          
+
           {/* 테마 토글 버튼 */}
           {mounted && (
             <button

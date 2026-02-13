@@ -12,7 +12,7 @@ export function useTheme() {
 
   useEffect(() => {
     setMounted(true)
-    
+
     if (theme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
@@ -24,7 +24,7 @@ export function useTheme() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
-    
+
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {

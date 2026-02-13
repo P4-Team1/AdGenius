@@ -1,12 +1,128 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Header } from '@/components/header'
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Header } from "@/components/header";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
+  const { isAuthenticated, isLoading, logout } = useAuth();
+
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 로그인된 사용자 - 대시보드 표시
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background transition-colors duration-300">
+        <Header
+          rightButtons={
+            <>
+              <Button variant="ghost" onClick={() => router.push("/projects")}>
+                내 프로젝트
+              </Button>
+              <Button variant="ghost" onClick={() => router.push("/settings")}>
+                설정
+              </Button>
+              <Button
+                onClick={logout}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
+                로그아웃
+              </Button>
+            </>
+          }
+        />
+        <div className="container mx-auto px-4 py-8 pt-28">
+          <div className="mb-8">
+            <h1 className="text-4xl font-black mb-2">대시보드</h1>
+            <p className="text-muted-foreground">
+              안녕하세요! AI 광고 생성을 시작해보세요
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="text-5xl mb-4">📊</div>
+              <h3 className="text-2xl font-bold mb-2">생성된 광고</h3>
+              <p className="text-4xl font-black text-blue-600 mb-2">12</p>
+              <p className="text-sm text-muted-foreground">이번 달</p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="text-5xl mb-4">⚡</div>
+              <h3 className="text-2xl font-bold mb-2">진행 중</h3>
+              <p className="text-4xl font-black text-purple-600 mb-2">3</p>
+              <p className="text-sm text-muted-foreground">현재 작업</p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="text-5xl mb-4">✅</div>
+              <h3 className="text-2xl font-bold mb-2">완료</h3>
+              <p className="text-4xl font-black text-green-500 mb-2">9</p>
+              <p className="text-sm text-muted-foreground">성공적으로 완료</p>
+            </Card>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-4">최근 프로젝트</h2>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">인스타그램 광고 {i}</h3>
+                      <p className="text-sm text-muted-foreground">2시간 전</p>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      보기
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-4">빠른 시작</h2>
+              <div className="space-y-3">
+                <Button
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                  onClick={() => router.push("/projects")}
+                >
+                  <span className="text-2xl mr-3">🎨</span>새 광고 만들기
+                </Button>
+                <Button variant="outline" className="w-full h-14 justify-start">
+                  <span className="text-2xl mr-3">📸</span>
+                  템플릿 둘러보기
+                </Button>
+                <Button variant="outline" className="w-full h-14 justify-start">
+                  <span className="text-2xl mr-3">📚</span>
+                  사용 가이드
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 로그인 안 된 사용자 - 랜딩 페이지 표시
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -16,14 +132,16 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-500/10"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-5xl mx-auto text-center space-y-12">
             <div className="space-y-6 animate-fade-in">
               <div className="inline-block px-4 py-2 bg-blue-600/10 border border-blue-600/20 rounded-full">
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">🚀 AI 기반 광고 자동 생성</span>
+                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  🚀 AI 기반 광고 자동 생성
+                </span>
               </div>
-              
+
               <h1 className="text-6xl md:text-8xl font-black tracking-tight">
                 소상공인을 위한
                 <br />
@@ -31,25 +149,25 @@ export default function Home() {
                   스마트 광고 솔루션
                 </span>
               </h1>
-              
+
               <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-3xl mx-auto">
-                디자인 지식 없이도 AI가 자동으로 인스타그램, 당근마켓, 쿠팡에 최적화된 
-                광고 이미지를 생성합니다
+                디자인 지식 없이도 AI가 자동으로 인스타그램, 당근마켓, 쿠팡에
+                최적화된 광고 이미지를 생성합니다
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button 
-                size="lg" 
-                onClick={() => router.push('/register')}
+              <Button
+                size="lg"
+                onClick={() => router.push("/register")}
                 className="h-14 px-10 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 무료로 시작하기 →
               </Button>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 className="h-14 px-10 text-lg font-semibold"
               >
                 로그인
@@ -59,17 +177,23 @@ export default function Home() {
             <div className="pt-12 flex flex-wrap justify-center gap-12 text-center">
               <div>
                 <div className="text-4xl font-black text-blue-600">30초</div>
-                <div className="text-sm text-muted-foreground mt-2">생성 시간</div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  생성 시간
+                </div>
               </div>
               <div className="w-px bg-border"></div>
               <div>
                 <div className="text-4xl font-black text-purple-600">AI</div>
-                <div className="text-sm text-muted-foreground mt-2">자동 생성</div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  자동 생성
+                </div>
               </div>
               <div className="w-px bg-border"></div>
               <div>
                 <div className="text-4xl font-black text-cyan-500">4+</div>
-                <div className="text-sm text-muted-foreground mt-2">플랫폼 지원</div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  플랫폼 지원
+                </div>
               </div>
             </div>
           </div>
@@ -93,7 +217,8 @@ export default function Home() {
               AI가 만드는 완벽한 광고
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              복잡한 디자인 툴 없이도 전문가 수준의 광고 콘텐츠를 생성할 수 있습니다
+              복잡한 디자인 툴 없이도 전문가 수준의 광고 콘텐츠를 생성할 수
+              있습니다
             </p>
           </div>
 
@@ -102,8 +227,8 @@ export default function Home() {
               <div className="text-5xl mb-4">🎨</div>
               <h3 className="text-2xl font-bold mb-3">제품 보존 편집</h3>
               <p className="text-muted-foreground">
-                제품 이미지를 업로드하면 AI가 자동으로 배경을 제거하고 
-                매력적인 새 배경으로 교체합니다
+                제품 이미지를 업로드하면 AI가 자동으로 배경을 제거하고 매력적인
+                새 배경으로 교체합니다
               </p>
             </Card>
 
@@ -236,7 +361,8 @@ export default function Home() {
                 <Card className="p-8 border-2">
                   <h3 className="text-2xl font-bold mb-3">AI 생성 요청</h3>
                   <p className="text-muted-foreground">
-                    원하는 스타일과 플랫폼을 선택하면 AI가 즉시 작업을 시작합니다
+                    원하는 스타일과 플랫폼을 선택하면 AI가 즉시 작업을
+                    시작합니다
                   </p>
                 </Card>
               </div>
@@ -261,7 +387,7 @@ export default function Home() {
       <section id="pricing" className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-500/10"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]"></div>
-        
+
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto space-y-10">
             <h2 className="text-4xl md:text-6xl font-black">
@@ -271,17 +397,17 @@ export default function Home() {
               무료 체험으로 AI 광고 생성의 놀라운 효과를 직접 경험해보세요
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button 
+              <Button
                 size="lg"
-                onClick={() => router.push('/register')}
+                onClick={() => router.push("/register")}
                 className="h-14 px-10 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 무료로 시작하기
               </Button>
-              <Button 
+              <Button
                 size="lg"
                 variant="outline"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 className="h-14 px-10 text-lg font-semibold"
               >
                 데모 보기
@@ -299,9 +425,15 @@ export default function Home() {
               AdGenius
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">이용약관</a>
-              <a href="#" className="hover:text-foreground transition-colors">개인정보처리방침</a>
-              <a href="#" className="hover:text-foreground transition-colors">고객지원</a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                이용약관
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                개인정보처리방침
+              </a>
+              <a href="#" className="hover:text-foreground transition-colors">
+                고객지원
+              </a>
             </div>
           </div>
         </div>
@@ -324,5 +456,5 @@ export default function Home() {
         }
       `}</style>
     </div>
-  )
+  );
 }
