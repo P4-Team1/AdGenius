@@ -1,161 +1,108 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { authAPI } from '@/lib/api'
+import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    passwordConfirm: '',
-    businessName: '',
-    businessNumber: '',
-  })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (formData.password !== formData.passwordConfirm) {
-      setError('비밀번호가 일치하지 않습니다.')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      await authAPI.register({
-        email: formData.email,
-        password: formData.password,
-        businessName: formData.businessName,
-        businessNumber: formData.businessNumber,
-      })
-      
-      alert('회원가입이 완료되었습니다!')
-      router.push('/login')
-    } catch (err) {
-      setError('회원가입에 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">회원가입</CardTitle>
-          <CardDescription>
-            사업자 정보를 입력하고 시작하세요
-          </CardDescription>
-        </CardHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
-                {error}
+    <>
+      {/* 회원가입 페이지 - 로그인 버튼 표시 */}
+      <Header 
+        rightButtons={
+          <Button 
+            variant="outline"
+            onClick={() => router.push('/login')}
+          >
+            로그인
+          </Button>
+        }
+      />
+      
+      <div className="min-h-screen pt-20 bg-background flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-black mb-2">회원가입</h1>
+              <p className="text-muted-foreground">
+                무료로 시작해보세요
+              </p>
+            </div>
+
+            <form className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">이름</Label>
+                <Input 
+                  id="name" 
+                  type="text" 
+                  placeholder="홍길동"
+                  className="h-12"
+                />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="example@email.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">이메일</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="your@email.com"
+                  className="h-12"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">비밀번호</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="8자 이상 입력하세요"
+                  className="h-12"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="passwordConfirm">비밀번호 확인</Label>
-              <Input
-                id="passwordConfirm"
-                type="password"
-                name="passwordConfirm"
-                value={formData.passwordConfirm}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password-confirm">비밀번호 확인</Label>
+                <Input 
+                  id="password-confirm" 
+                  type="password" 
+                  placeholder="비밀번호를 다시 입력하세요"
+                  className="h-12"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="businessName">상호명</Label>
-              <Input
-                id="businessName"
-                type="text"
-                name="businessName"
-                placeholder="예: 현민 카페"
-                value={formData.businessName}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div className="flex items-start gap-2 text-sm">
+                <input type="checkbox" className="mt-1 rounded" />
+                <span className="text-muted-foreground">
+                  <a href="#" className="text-blue-600 hover:underline">이용약관</a> 및{' '}
+                  <a href="#" className="text-blue-600 hover:underline">개인정보처리방침</a>에 동의합니다
+                </span>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="businessNumber">사업자등록번호</Label>
-              <Input
-                id="businessNumber"
-                type="text"
-                name="businessNumber"
-                placeholder="123-45-67890"
-                value={formData.businessNumber}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </CardContent>
+              <Button 
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg font-semibold"
+              >
+                회원가입
+              </Button>
+            </form>
 
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full mt-4"
-              disabled={loading}
-            >
-              {loading ? '가입 중...' : '회원가입'}
-            </Button>
-
-            <p className="text-sm text-muted-foreground text-center">
+            <div className="mt-6 text-center text-sm text-muted-foreground">
               이미 계정이 있으신가요?{' '}
-              <Link href="/login" className="text-primary hover:underline font-medium">
+              <button 
+                onClick={() => router.push('/login')}
+                className="text-blue-600 hover:underline font-semibold"
+              >
                 로그인
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+              </button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </>
   )
 }

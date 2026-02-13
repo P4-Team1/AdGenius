@@ -1,137 +1,124 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { projectAPI } from '@/lib/api'
+import { Header } from '@/components/header'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [projects, setProjects] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token')
-    if (!token) {
-      router.push('/login')
-      return
-    }
-
-    loadProjects()
-  }, [])
-
-  const loadProjects = async () => {
-    try {
-      const data = await projectAPI.getAll()
-      setProjects(data)
-    } catch (error) {
-      console.error('프로젝트 목록 로딩 실패:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    router.push('/login')
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-muted-foreground">로딩 중...</div>
-      </div>
-    )
+    // 로그아웃 로직
+    router.push('/')
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* 헤더 */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">내 프로젝트</h1>
-            <p className="text-muted-foreground mt-1">
-              AI로 광고 콘텐츠를 만들어보세요
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              onClick={() => router.push('/projects/new')}
-              size="lg"
-            >
-              + 새 프로젝트
-            </Button>
-            <Button
-              onClick={() => router.push('/settings')}
-              variant="outline"
-              size="lg"
-            >
-              ⚙️ 설정
-            </Button>
-            <Button
-              onClick={handleLogout}
+    <>
+      {/* 대시보드 - 여러 버튼 표시 */}
+      <Header 
+        rightButtons={
+          <>
+            <Button 
               variant="ghost"
-              size="lg"
+              onClick={() => router.push('/projects')}
+            >
+              내 프로젝트
+            </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => router.push('/settings')}
+            >
+              설정
+            </Button>
+            <Button 
+              onClick={handleLogout}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               로그아웃
             </Button>
+          </>
+        }
+      />
+      
+      <div className="min-h-screen pt-20 bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-black mb-2">대시보드</h1>
+            <p className="text-muted-foreground">
+              안녕하세요! AI 광고 생성을 시작해보세요
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="text-5xl mb-4">📊</div>
+              <h3 className="text-2xl font-bold mb-2">생성된 광고</h3>
+              <p className="text-4xl font-black text-blue-600 mb-2">12</p>
+              <p className="text-sm text-muted-foreground">이번 달</p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="text-5xl mb-4">⚡</div>
+              <h3 className="text-2xl font-bold mb-2">진행 중</h3>
+              <p className="text-4xl font-black text-purple-600 mb-2">3</p>
+              <p className="text-sm text-muted-foreground">현재 작업</p>
+            </Card>
+
+            <Card className="p-6">
+              <div className="text-5xl mb-4">✅</div>
+              <h3 className="text-2xl font-bold mb-2">완료</h3>
+              <p className="text-4xl font-black text-green-500 mb-2">9</p>
+              <p className="text-sm text-muted-foreground">성공적으로 완료</p>
+            </Card>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-4">최근 프로젝트</h2>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold">인스타그램 광고 {i}</h3>
+                      <p className="text-sm text-muted-foreground">2시간 전</p>
+                    </div>
+                    <Button size="sm" variant="outline">보기</Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="text-2xl font-bold mb-4">빠른 시작</h2>
+              <div className="space-y-3">
+                <Button 
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                  onClick={() => router.push('/dashboard/new')}
+                >
+                  <span className="text-2xl mr-3">🎨</span>
+                  새 광고 만들기
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full h-14 justify-start"
+                >
+                  <span className="text-2xl mr-3">📸</span>
+                  템플릿 둘러보기
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full h-14 justify-start"
+                >
+                  <span className="text-2xl mr-3">📚</span>
+                  사용 가이드
+                </Button>
+              </div>
+            </Card>
           </div>
         </div>
-
-        {/* 프로젝트 목록 */}
-        {projects.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent className="space-y-4">
-              <div className="text-6xl">📝</div>
-              <div>
-                <h2 className="text-2xl font-semibold mb-2">아직 프로젝트가 없습니다</h2>
-                <p className="text-muted-foreground mb-6">
-                  첫 프로젝트를 만들고 AI로 광고 이미지를 생성해보세요!
-                </p>
-              </div>
-              <Button
-                onClick={() => router.push('/projects/new')}
-                size="lg"
-              >
-                첫 프로젝트 만들기
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <Card
-                key={project.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => router.push(`/projects/${project.id}`)}
-              >
-                {/* 썸네일 영역 */}
-                <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center">
-                  <span className="text-4xl">📸</span>
-                </div>
-
-                <CardHeader>
-                  <CardTitle>{project.name}</CardTitle>
-                  <CardDescription>
-                    {new Date(project.createdAt).toLocaleDateString('ko-KR')}
-                  </CardDescription>
-                </CardHeader>
-
-                {project.storeId && (
-                  <CardFooter>
-                    <p className="text-xs text-muted-foreground">
-                      가게 이름: {project.storeName}
-                    </p>
-                  </CardFooter>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </>
   )
 }
