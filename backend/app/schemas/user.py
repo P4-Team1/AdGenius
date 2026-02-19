@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from app.models.user import BusinessType
@@ -33,8 +33,21 @@ class UserInDB(UserBase):
         from_attributes = True
 
 
+class Store(BaseModel):
+    id: int
+    user_id: int
+    brand_name: str
+    brand_tone: str
+    description: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 class User(UserInDB):
-    pass
+    stores: List[Store] = []
 
 
 class UserLogin(BaseModel):
