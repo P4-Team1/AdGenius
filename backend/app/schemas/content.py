@@ -14,6 +14,7 @@ class ContentBase(BaseModel):
 class ContentCreate(ContentBase):
     project_id: int
     original_image_path: Optional[str] = None
+    image_prompt: Optional[str] = None  # 이미지 묘사
 
 
 class ContentUpdate(BaseModel):
@@ -30,6 +31,9 @@ class ContentInDB(ContentBase):
     original_image_path: Optional[str] = None
     result_image_path: Optional[str] = None
     ad_copy: Optional[str] = None
+    user_prompt: Optional[str] = None
+    image_prompt: Optional[str] = None
+    optimized_prompt: Optional[str] = None
     generation_time: Optional[int] = None
     is_success: bool
     error_message: Optional[str] = None
