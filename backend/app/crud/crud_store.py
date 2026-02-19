@@ -27,6 +27,12 @@ class CRUDStore:
         """
         return db.query(StoreModel).filter(StoreModel.user_id == user_id).all()
 
+    def get_by_user_id(self, db: Session, *, user_id: int) -> List[StoreModel]:
+        """
+        특정 사용자의 모든 가게 목록 조회 (별칭)
+        """
+        return self.get_by_user(db=db, user_id=user_id)
+
     def get_by_user_and_id(self, db: Session, *, user_id: int, store_id: int) -> Optional[StoreModel]:
         """
         특정 사용자의 특정 가게 조회 (권한 체크용)
