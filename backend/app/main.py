@@ -7,33 +7,74 @@ if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 import os
-# Windows 인코딩 문제 해결
-os.environ['PYTHONIOENCODING'] = 'utf-8'
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.api.v1.api import api_router
+from app.services.flux_service import flux_service
+from app.db.base_class import Base
+from app.db.session import engine
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """애플리케이션 수명 주기 관리"""
+    # 시작 시 실행
+    print("🚀 Application startup...")
+    
+    # SQLite 테이블 생성
+    print("🔧 Creating database tables...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+    except Exception as e:
+        print(f"❌ Error creating database tables: {e}")
+    
+    try:
+        # Flux 모델 미리 로드
+        print("🔧 Flux 모델 로딩 중...")
+        await flux_service._load_model()
+        print("✅ Flux 모델 준비 완료")
+    except Exception as e:
+        print(f"⚠️ Flux 모델 로딩 실패: {e}")
+        print("   첫 요청 시 자동으로 로드됩니다.")
+    
+    yield
+    
+    # 종료 시 실행
+    print("🛑 Application shutdown...")
+    try:
+        await flux_service.unload_model()
+        print("✅ Flux 모델 정리 완료")
+    except Exception as e:
+        print(f"⚠️ Flux 모델 정리 실패: {e}")
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="소상공인 자동 배너광고 서비스 API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=["*"],  # 개발용 - 프로덕션에서는 실제 도메인으로 변경 필요
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # GET, POST, PUT, DELETE, OPTIONS 등 모든 메서드 허용
+    allow_headers=["*"],  # Content-Type, Authorization 등 모든 헤더 허용
 )
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
+
+# 정적 파일 서빙 - 생성된 이미지 접근
+app.mount("/images", StaticFiles(directory="outputs/txt2img"), name="images")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 전역 예외 처리기
 @app.exception_handler(Exception)
@@ -62,15 +103,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content={"detail": exc.detail}
     )
-
-@app.on_event("startup")
-async def startup_event():
-    print("Application startup...")
-    # Database tables are created automatically via app/db/__init__.py
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    print("Application shutdown...")
 
 @app.get("/")
 async def root():
