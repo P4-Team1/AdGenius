@@ -36,7 +36,12 @@ def verify_token(token: str) -> Optional[str]:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """비밀번호 검증"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # passlib의 기본 동작에 위임 (불필요한 인코딩 제거)
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        print(f"Password verification error: {e}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
