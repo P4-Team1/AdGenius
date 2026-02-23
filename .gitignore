@@ -2,16 +2,17 @@
 .DS_Store
 Thumbs.db
 
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
 
 # Virtual environment
 .venv/
 venv/
 env/
 
-# Environment variables / secrets
+# Environment variables
 .env
 .env.*
 !.env.example
@@ -19,66 +20,42 @@ env/
 # Logs
 *.log
 
-# Temp files
+# Temp
 *.tmp
 *.swp
 
 # Jupyter
 .ipynb_checkpoints/
 
-# PyTorch / TensorFlow
+# AI Models / Weights
 *.pt
 *.pth
 *.ckpt
 *.onnx
-*.tflite
-*.pb
+*.safetensors
 
-# Dataset / cache
-data/
-datasets/
-cache/
-
-# HuggingFace
+# HuggingFace cache
 .cache/
 
-# VSCode
+# IDE
 .vscode/
-
-# PyCharm
 .idea/
 
+# Database
+*.db
+
+# Generated images
+backend/outputs/
+
 # ==========================================
-# Node.js / Next.js (아래 내용 추가!)
+# Node.js / Next.js
 # ==========================================
-
-# Dependencies
-frontend/node_modules/
-frontend/.pnp
-frontend/.pnp.js
-
-# Testing
-frontend/coverage
-
-# Next.js build output
+node_modules/
 frontend/.next/
 frontend/out/
-
-# Production build
-frontend/build
-
-# Debug
+frontend/build/
 frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/.pnpm-debug.log*
-
-# Local env files (Next.js)
 frontend/.env*.local
-
-# Vercel
 frontend/.vercel
-
-# TypeScript
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts

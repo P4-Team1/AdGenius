@@ -16,9 +16,10 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: {
-    name: string;
+    username: string;
     email: string;
     password: string;
+    business_type: string;
   }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -51,14 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       const result = await authAPI.login(email, password);
-      const userData: User = {
-        id: result.user?.id || "1",
-        name: result.user?.name || email.split("@")[0],
-        email: result.user?.email || email,
-      };
 
       localStorage.setItem("access_token", result.access_token);
-      localStorage.setItem("refresh_token", result.refresh_token);
+      if (result.refresh_token) {
+        localStorage.setItem("refresh_token", result.refresh_token);
+      }
+
+      const userInfo = await authAPI.getMe();
+      const userData: User = {
+        id: userInfo.id,
+        username: userInfo.username,
+        email: userInfo.email,
+        business_type: userInfo.business_type,
+        is_verified: userInfo.is_verified,
+        is_active: userInfo.is_active,
+      };
+
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       router.push("/");
@@ -67,7 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const register = useCallback(
-    async (userData: { name: string; email: string; password: string }) => {
+    async (userData: {
+      username: string;
+      email: string;
+      password: string;
+      business_type: string;
+    }) => {
       await authAPI.register(userData);
       router.push("/login");
     },

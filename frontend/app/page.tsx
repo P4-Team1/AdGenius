@@ -1,14 +1,208 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { useAuth } from "@/contexts/auth-context";
+import { projectAPI, storeAPI } from "@/lib/api";
+import type { Project } from "@/types";
+
+function AuthenticatedDashboard() {
+  const router = useRouter();
+  const { logout } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [storeCount, setStoreCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [projectsData, storesData] = await Promise.all([
+        projectAPI.getAll(),
+        storeAPI.getAll(),
+      ]);
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
+      setStoreCount(Array.isArray(storesData) ? storesData.length : 0);
+    } catch {
+      setProjects([]);
+      setStoreCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  return (
+    <div className="min-h-screen bg-background transition-colors duration-300">
+      <Header
+        rightButtons={
+          <>
+            <Button variant="ghost" onClick={() => router.push("/stores")}>
+              가게 관리
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/projects")}>
+              내 프로젝트
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/settings")}>
+              설정
+            </Button>
+            <Button
+              onClick={logout}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            >
+              로그아웃
+            </Button>
+          </>
+        }
+      />
+      <div className="container mx-auto px-4 py-8 pt-28">
+        <div className="mb-8">
+          <h1 className="text-4xl font-black mb-2">대시보드</h1>
+          <p className="text-muted-foreground">
+            안녕하세요! AI 광고 생성을 시작해보세요
+          </p>
+        </div>
+
+        {/* 통계 카드 - 실제 데이터 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6">
+            <div className="text-5xl mb-4">🏪</div>
+            <h3 className="text-2xl font-bold mb-2">내 가게</h3>
+            <p className="text-4xl font-black text-blue-600 mb-2">
+              {loading ? "..." : storeCount}
+            </p>
+            <p className="text-sm text-muted-foreground">등록된 가게</p>
+          </Card>
+
+          <Card className="p-6">
+            <div className="text-5xl mb-4">📁</div>
+            <h3 className="text-2xl font-bold mb-2">프로젝트</h3>
+            <p className="text-4xl font-black text-purple-600 mb-2">
+              {loading ? "..." : projects.length}
+            </p>
+            <p className="text-sm text-muted-foreground">전체 프로젝트</p>
+          </Card>
+
+          <Card className="p-6">
+            <div className="text-5xl mb-4">✅</div>
+            <h3 className="text-2xl font-bold mb-2">완료</h3>
+            <p className="text-4xl font-black text-green-500 mb-2">
+              {loading
+                ? "..."
+                : projects.filter((p) => p.status === "completed").length}
+            </p>
+            <p className="text-sm text-muted-foreground">완료된 프로젝트</p>
+          </Card>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* 최근 프로젝트 - 실제 API 데이터 */}
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">최근 프로젝트</h2>
+            {loading ? (
+              <p className="text-muted-foreground text-sm">불러오는 중...</p>
+            ) : projects.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-5xl mb-4">📂</div>
+                <p className="text-muted-foreground mb-4">
+                  아직 프로젝트가 없습니다
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => router.push("/projects")}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                >
+                  첫 프로젝트 만들기
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {projects.slice(0, 5).map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/projects/${project.id}`)}
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                      {project.title?.charAt(0) || "P"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold truncate">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {project.created_at
+                          ? new Date(project.created_at).toLocaleDateString()
+                          : ""}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      보기
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* 빠른 시작 */}
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">빠른 시작</h2>
+            <div className="space-y-3">
+              {storeCount === 0 ? (
+                <>
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg mb-4">
+                    <p className="text-sm font-medium text-amber-600">
+                      ⚠️ 광고를 만들려면 먼저 가게를 등록하세요!
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                    onClick={() => router.push("/stores")}
+                  >
+                    <span className="text-2xl mr-3">🏪</span>내 가게 등록하기
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
+                    onClick={() => router.push("/projects")}
+                  >
+                    <span className="text-2xl mr-3">🎨</span>새 광고 만들기
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-14 justify-start"
+                    onClick={() => router.push("/stores")}
+                  >
+                    <span className="text-2xl mr-3">🏪</span>가게 관리
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                className="w-full h-14 justify-start"
+                onClick={() => router.push("/settings")}
+              >
+                <span className="text-2xl mr-3">⚙️</span>
+                설정
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // 로딩 중일 때
   if (isLoading) {
@@ -24,102 +218,7 @@ export default function Home() {
 
   // 로그인된 사용자 - 대시보드 표시
   if (isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background transition-colors duration-300">
-        <Header
-          rightButtons={
-            <>
-              <Button variant="ghost" onClick={() => router.push("/projects")}>
-                내 프로젝트
-              </Button>
-              <Button variant="ghost" onClick={() => router.push("/settings")}>
-                설정
-              </Button>
-              <Button
-                onClick={logout}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              >
-                로그아웃
-              </Button>
-            </>
-          }
-        />
-        <div className="container mx-auto px-4 py-8 pt-28">
-          <div className="mb-8">
-            <h1 className="text-4xl font-black mb-2">대시보드</h1>
-            <p className="text-muted-foreground">
-              안녕하세요! AI 광고 생성을 시작해보세요
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="p-6">
-              <div className="text-5xl mb-4">📊</div>
-              <h3 className="text-2xl font-bold mb-2">생성된 광고</h3>
-              <p className="text-4xl font-black text-blue-600 mb-2">12</p>
-              <p className="text-sm text-muted-foreground">이번 달</p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="text-5xl mb-4">⚡</div>
-              <h3 className="text-2xl font-bold mb-2">진행 중</h3>
-              <p className="text-4xl font-black text-purple-600 mb-2">3</p>
-              <p className="text-sm text-muted-foreground">현재 작업</p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="text-5xl mb-4">✅</div>
-              <h3 className="text-2xl font-bold mb-2">완료</h3>
-              <p className="text-4xl font-black text-green-500 mb-2">9</p>
-              <p className="text-sm text-muted-foreground">성공적으로 완료</p>
-            </Card>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">최근 프로젝트</h2>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg"></div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">인스타그램 광고 {i}</h3>
-                      <p className="text-sm text-muted-foreground">2시간 전</p>
-                    </div>
-                    <Button size="sm" variant="outline">
-                      보기
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">빠른 시작</h2>
-              <div className="space-y-3">
-                <Button
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white justify-start"
-                  onClick={() => router.push("/projects")}
-                >
-                  <span className="text-2xl mr-3">🎨</span>새 광고 만들기
-                </Button>
-                <Button variant="outline" className="w-full h-14 justify-start">
-                  <span className="text-2xl mr-3">📸</span>
-                  템플릿 둘러보기
-                </Button>
-                <Button variant="outline" className="w-full h-14 justify-start">
-                  <span className="text-2xl mr-3">📚</span>
-                  사용 가이드
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
+    return <AuthenticatedDashboard />;
   }
 
   // 로그인 안 된 사용자 - 랜딩 페이지 표시
@@ -151,8 +250,8 @@ export default function Home() {
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground font-light max-w-3xl mx-auto">
-                디자인 지식 없이도 AI가 자동으로 인스타그램, 당근마켓, 쿠팡에
-                최적화된 광고 이미지를 생성합니다
+                디자인 지식 없이도 AI가 자동으로 인스타그램, 틱톡, 당근마켓,
+                네이버 블로그에 최적화된 광고 이미지를 생성합니다
               </p>
             </div>
 
@@ -292,7 +391,12 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <Card className="p-8 text-center hover:shadow-xl transition-all">
-              <div className="text-6xl mb-4">📸</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/인스타그램 로고.png"
+                alt="인스타그램"
+                className="w-16 h-16 mx-auto mb-4 rounded-xl object-cover"
+              />
               <h3 className="text-xl font-bold mb-2">인스타그램</h3>
               <p className="text-sm text-muted-foreground">
                 1:1 비율의 감각적인 이미지
@@ -300,7 +404,25 @@ export default function Home() {
             </Card>
 
             <Card className="p-8 text-center hover:shadow-xl transition-all">
-              <div className="text-6xl mb-4">🥕</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/틱톡 로고.jpg"
+                alt="틱톡"
+                className="w-16 h-16 mx-auto mb-4 rounded-xl object-cover"
+              />
+              <h3 className="text-xl font-bold mb-2">틱톡</h3>
+              <p className="text-sm text-muted-foreground">
+                9:16 숏폼 영상용 썸네일
+              </p>
+            </Card>
+
+            <Card className="p-8 text-center hover:shadow-xl transition-all">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/당근마켓 로고.png"
+                alt="당근마켓"
+                className="w-16 h-16 mx-auto mb-4 rounded-xl object-cover"
+              />
               <h3 className="text-xl font-bold mb-2">당근마켓</h3>
               <p className="text-sm text-muted-foreground">
                 4:3 비율의 신뢰감 있는 사진
@@ -308,18 +430,15 @@ export default function Home() {
             </Card>
 
             <Card className="p-8 text-center hover:shadow-xl transition-all">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-bold mb-2">쿠팡</h3>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/네이버 블로그 로고.avif"
+                alt="네이버 블로그"
+                className="w-16 h-16 mx-auto mb-4 rounded-xl object-cover"
+              />
+              <h3 className="text-xl font-bold mb-2">네이버 블로그</h3>
               <p className="text-sm text-muted-foreground">
-                순백 배경의 전문적인 이미지
-              </p>
-            </Card>
-
-            <Card className="p-8 text-center hover:shadow-xl transition-all">
-              <div className="text-6xl mb-4">🎬</div>
-              <h3 className="text-xl font-bold mb-2">유튜브</h3>
-              <p className="text-sm text-muted-foreground">
-                썸네일 최적화 이미지
+                16:9 블로그 포스트 대표 이미지
               </p>
             </Card>
           </div>
@@ -410,7 +529,7 @@ export default function Home() {
                 onClick={() => router.push("/login")}
                 className="h-14 px-10 text-lg font-semibold"
               >
-                데모 보기
+                로그인
               </Button>
             </div>
           </div>

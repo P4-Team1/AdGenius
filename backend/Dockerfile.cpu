@@ -1,0 +1,21 @@
+# CPU 전용 경량 이미지
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
+
+# CPU 전용 PyTorch (경량 ~200MB)
+COPY requirements-cpu.txt .
+RUN pip install --no-cache-dir -r requirements-cpu.txt
+
+COPY . .
+RUN mkdir -p outputs/txt2img
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

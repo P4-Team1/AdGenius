@@ -1,57 +1,61 @@
 export interface User {
-  id: string
-  name: string
-  email: string
+  id: number;
+  username: string;
+  email: string;
+  business_type: string;
+  is_verified: boolean;
+  is_active: boolean;
 }
 
 export interface Project {
-  id: string
-  name: string
-  description?: string
-  storeId?: string
-  storeName?: string
-  adsCount: number
-  createdAt: string
-  thumbnail?: string
+  id: number;
+  store_id: number;
+  title: string;
+  description?: string;
+  status: "draft" | "completed" | "archived";
+  created_at: string;
+  updated_at?: string;
 }
 
-export interface Ad {
-  id: string
-  projectId: string
-  name: string
-  platform: string
-  platformIcon: string
-  platformName: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  statusText: string
-  statusColor: string
-  createdAt: string
-  updatedAt?: string
-  thumbnail?: string
-  prompt?: string
-  settings?: AdSettings
+export interface Content {
+  id: number;
+  project_id: number;
+  type: "text_ad" | "image_gen" | "background_removal" | "sketch_to_image";
+  user_prompt?: string;
+  image_prompt?: string;
+  optimized_prompt?: string;
+  ad_copy?: string;
+  original_image_path?: string;
+  result_image_path?: string;
+  ai_config?: Record<string, unknown>;
+  generation_time?: number;
+  is_success: boolean;
+  error_message?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface AdSettings {
-  ratio: string
-  style: string
-  colors: string[]
-  resolution: string
+  ratio: string;
+  style: string;
+  colors: string[];
+  resolution: string;
 }
 
 export interface Platform {
-  id: string
-  name: string
-  icon: string
-  ratio: string
-  description: string
-  color: string
-  features?: string[]
+  id: string;
+  name: string;
+  icon: string;
+  ratio: string;
+  description: string;
+  color: string;
+  features?: string[];
 }
 
 export interface Store {
-  id: string
-  name: string
-  category: string
-  address: string
+  id: number;
+  user_id: number;
+  brand_name: string;
+  brand_tone: string;
+  description?: string;
 }

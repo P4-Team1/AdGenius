@@ -1,6 +1,6 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -17,7 +17,28 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    if (response.status === 401) {
+      if (typeof window !== "undefined" && !endpoint.includes("/auth/login")) {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+    }
+    // Backend의 detail 메시지를 가져와서 더 유용한 에러를 throw
+    let errorMessage = `API Error: ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody.detail) {
+        errorMessage =
+          typeof errorBody.detail === "string"
+            ? errorBody.detail
+            : JSON.stringify(errorBody.detail);
+      }
+    } catch {
+      // JSON 파싱 실패 시 기본 메시지 유지
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -51,12 +72,31 @@ export const authAPI = {
     );
   },
 
-  register: async (userData: any) => {
+  register: async (userData: {
+    username: string;
+    email: string;
+    password: string;
+    business_type: string;
+  }) => {
     return apiCall({ success: true, message: "회원가입 성공" }, () =>
       fetchAPI("/auth/register", {
         method: "POST",
         body: JSON.stringify(userData),
       }),
+    );
+  },
+
+  getMe: async () => {
+    return apiCall(
+      {
+        id: 1,
+        email: "test@test.com",
+        username: "testuser",
+        business_type: "restaurant",
+        is_verified: true,
+        is_active: true,
+      },
+      () => fetchAPI("/users/me"),
     );
   },
 
@@ -73,164 +113,102 @@ export const authAPI = {
 // 가게 API
 export const storeAPI = {
   getAll: async () => {
-    return apiCall(
-      [
-        {
-          id: "1",
-          name: "현민 카페",
-          category: "카페",
-          address: "서울시 강남구",
-        },
-        {
-          id: "2",
-          name: "현민 베이커리",
-          category: "제과점",
-          address: "서울시 서초구",
-        },
-      ],
-      () => fetchAPI("/stores"),
-    );
+    return fetchAPI("/stores/");
   },
 
-  create: async (storeData: any) => {
-    return apiCall({ id: "3", ...storeData }, () =>
-      fetchAPI("/stores", {
-        method: "POST",
-        body: JSON.stringify(storeData),
-      }),
-    );
+  create: async (storeData: Record<string, unknown>) => {
+    return fetchAPI("/stores/", {
+      method: "POST",
+      body: JSON.stringify(storeData),
+    });
   },
 
-  update: async (id: string, storeData: any) => {
-    return apiCall({ success: true }, () =>
-      fetchAPI(`/stores/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(storeData),
-      }),
-    );
+  update: async (id: string | number, storeData: Record<string, unknown>) => {
+    return fetchAPI(`/stores/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(storeData),
+    });
   },
 
-  delete: async (id: string) => {
-    return apiCall({ success: true }, () =>
-      fetchAPI(`/stores/${id}`, {
-        method: "DELETE",
-      }),
-    );
+  delete: async (id: string | number) => {
+    return fetchAPI(`/stores/${id}`, {
+      method: "DELETE",
+    });
   },
 };
 
 // 프로젝트 API
 export const projectAPI = {
   getAll: async () => {
-    return apiCall(
-      [
-        {
-          id: "1",
-          storeId: "1",
-          name: "크리스마스 이벤트",
-          createdAt: "2026-01-15",
-          storeName: "현민 카페",
-        },
-        {
-          id: "2",
-          storeId: "1",
-          name: "신메뉴 홍보",
-          createdAt: "2026-02-01",
-          storeName: "현민 베이커리",
-        },
-      ],
-      () => fetchAPI("/projects"),
-    );
+    return fetchAPI("/projects/");
   },
 
-  getById: async (id: string) => {
-    return apiCall(
-      {
-        id: "1",
-        storeId: "1",
-        name: "크리스마스 이벤트",
-        createdAt: "2026-01-15",
-      },
-      () => fetchAPI(`/projects/${id}`),
-    );
+  getById: async (id: string | number) => {
+    return fetchAPI(`/projects/${id}`);
   },
 
-  create: async (projectData: any) => {
-    return apiCall({ id: "3", ...projectData }, () =>
-      fetchAPI("/projects", {
-        method: "POST",
-        body: JSON.stringify(projectData),
-      }),
-    );
+  create: async (projectData: Record<string, unknown>) => {
+    return fetchAPI("/projects/", {
+      method: "POST",
+      body: JSON.stringify(projectData),
+    });
   },
 
-  update: async (id: string, projectData: any) => {
-    return apiCall({ success: true }, () =>
-      fetchAPI(`/projects/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(projectData),
-      }),
-    );
+  update: async (id: string | number, projectData: Record<string, unknown>) => {
+    return fetchAPI(`/projects/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(projectData),
+    });
   },
 
-  delete: async (id: string) => {
-    return apiCall({ success: true }, () =>
-      fetchAPI(`/projects/${id}`, {
-        method: "DELETE",
-      }),
-    );
+  delete: async (id: string | number) => {
+    return fetchAPI(`/projects/${id}`, {
+      method: "DELETE",
+    });
   },
 };
 
 // 콘텐츠 API
 export const contentAPI = {
-  generate: async (generateData: any) => {
-    return apiCall(
-      { id: "1", imageUrl: "mock-image.jpg", text: "Mock 생성 텍스트" },
-      () =>
-        fetchAPI("/contents/generate", {
-          method: "POST",
-          body: JSON.stringify(generateData),
-        }),
-    );
+  generate: async (generateData: Record<string, unknown>) => {
+    return fetchAPI("/contents/generate", {
+      method: "POST",
+      body: JSON.stringify(generateData),
+    });
   },
 
   upload: async (formData: FormData) => {
-    if (USE_MOCK) {
-      await delay(500);
-      return { id: "1", url: "mock-uploaded.jpg" };
-    }
     return fetch(`${API_BASE_URL}/contents/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("access_token")}`,
       },
       body: formData,
-    }).then((res) => res.json());
+    }).then((res) => {
+      if (!res.ok) {
+        if (res.status === 401 && typeof window !== "undefined") {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }
+        throw new Error(`API Error: ${res.status}`);
+      }
+      return res.json();
+    });
   },
 
-  getAll: async (projectId?: string) => {
-    return apiCall(
-      [
-        { id: "1", projectId: "1", type: "image", url: "content1.jpg" },
-        { id: "2", projectId: "1", type: "text", content: "광고 문구입니다" },
-      ],
-      () => fetchAPI(`/contents${projectId ? `?project_id=${projectId}` : ""}`),
-    );
+  getAll: async (projectId: string | number) => {
+    return fetchAPI(`/contents/?project_id=${projectId}`);
   },
 
-  getById: async (id: string) => {
-    return apiCall(
-      { id: "1", projectId: "1", type: "image", url: "content1.jpg" },
-      () => fetchAPI(`/contents/${id}`),
-    );
+  getById: async (id: string | number) => {
+    return fetchAPI(`/contents/${id}`);
   },
 
-  delete: async (id: string) => {
-    return apiCall({ success: true }, () =>
-      fetchAPI(`/contents/${id}`, {
-        method: "DELETE",
-      }),
-    );
+  delete: async (id: string | number) => {
+    return fetchAPI(`/contents/${id}`, {
+      method: "DELETE",
+    });
   },
 };

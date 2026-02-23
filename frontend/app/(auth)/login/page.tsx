@@ -1,39 +1,50 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/auth-context'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError('이메일과 비밀번호를 입력해주세요')
-      return
+      setError("이메일과 비밀번호를 입력해주세요");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await login(email, password)
-    } catch {
-      setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
+      await login(email, password);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (
+        message.includes("API Error") ||
+        message.includes("인증") ||
+        message.includes("Unauthorized")
+      ) {
+        setError("이메일 또는 비밀번호가 일치하지 않습니다.");
+      } else if (message) {
+        setError(message);
+      } else {
+        setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-5rem)]">
@@ -92,14 +103,14 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg font-semibold"
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              {isLoading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            계정이 없으신가요?{' '}
+            계정이 없으신가요?{" "}
             <button
-              onClick={() => router.push('/register')}
+              onClick={() => router.push("/register")}
               className="text-blue-600 hover:underline font-semibold"
             >
               회원가입
@@ -108,5 +119,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

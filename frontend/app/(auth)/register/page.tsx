@@ -1,57 +1,73 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/auth-context'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const { register } = useAuth()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordConfirm, setPasswordConfirm] = useState('')
-  const [agreed, setAgreed] = useState(false)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const { register } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
 
     if (!name.trim() || !email.trim() || !password.trim()) {
-      setError('모든 필드를 입력해주세요')
-      return
+      setError("모든 필드를 입력해주세요");
+      return;
+    }
+
+    if (!businessType) {
+      setError("업종을 선택해주세요");
+      return;
     }
 
     if (password !== passwordConfirm) {
-      setError('비밀번호가 일치하지 않습니다')
-      return
+      setError("비밀번호가 일치하지 않습니다");
+      return;
     }
 
     if (password.length < 8) {
-      setError('비밀번호는 8자 이상이어야 합니다')
-      return
+      setError("비밀번호는 8자 이상이어야 합니다");
+      return;
     }
 
     if (!agreed) {
-      setError('이용약관에 동의해주세요')
-      return
+      setError("이용약관에 동의해주세요");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await register({ name, email, password })
-    } catch {
-      setError('회원가입에 실패했습니다. 다시 시도해주세요.')
+      await register({
+        username: name,
+        email,
+        password,
+        business_type: businessType,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message && !message.startsWith("API Error")) {
+        setError(message);
+      } else {
+        setError("회원가입에 실패했습니다. 이미 등록된 이메일일 수 있습니다.");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-5rem)]">
@@ -59,9 +75,7 @@ export default function RegisterPage() {
         <Card className="max-w-md mx-auto p-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-black mb-2">회원가입</h1>
-            <p className="text-muted-foreground">
-              무료로 시작해보세요
-            </p>
+            <p className="text-muted-foreground">무료로 시작해보세요</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,6 +95,28 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="business_type">업종</Label>
+              <select
+                id="business_type"
+                className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
+              >
+                <option value="" disabled>
+                  업종을 선택하세요
+                </option>
+                <option value="restaurant">음식점</option>
+                <option value="clothing">의류/패션</option>
+                <option value="service">서비스</option>
+                <option value="beauty">뷰티/미용</option>
+                <option value="education">교육</option>
+                <option value="medical">의료/건강</option>
+                <option value="retail">도소매</option>
+                <option value="etc">기타</option>
+              </select>
             </div>
 
             <div className="space-y-2">
@@ -127,8 +163,14 @@ export default function RegisterPage() {
                 onChange={(e) => setAgreed(e.target.checked)}
               />
               <span className="text-muted-foreground">
-                <a href="#" className="text-blue-600 hover:underline">이용약관</a> 및{' '}
-                <a href="#" className="text-blue-600 hover:underline">개인정보처리방침</a>에 동의합니다
+                <a href="#" className="text-blue-600 hover:underline">
+                  이용약관
+                </a>{" "}
+                및{" "}
+                <a href="#" className="text-blue-600 hover:underline">
+                  개인정보처리방침
+                </a>
+                에 동의합니다
               </span>
             </div>
 
@@ -137,14 +179,14 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg font-semibold"
             >
-              {isLoading ? '가입 중...' : '회원가입'}
+              {isLoading ? "가입 중..." : "회원가입"}
             </Button>
           </form>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            이미 계정이 있으신가요?{' '}
+            이미 계정이 있으신가요?{" "}
             <button
-              onClick={() => router.push('/login')}
+              onClick={() => router.push("/login")}
               className="text-blue-600 hover:underline font-semibold"
             >
               로그인
@@ -153,5 +195,5 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

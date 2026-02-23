@@ -1,20 +1,26 @@
-# 1. Python 베이스 이미지
-FROM python:3.12-slim
+# Python 3.11 slim 기반
+FROM python:3.11-slim
 
-# 2. 작업 디렉토리 설정
 WORKDIR /app
 
-# 3. 의존성 파일 복사
+# 시스템 의존성
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
+
+# PyTorch (CUDA 포함 - GPU 있으면 자동 사용, 없으면 CPU fallback)
 COPY requirements.txt .
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install --no-cache-dir -r requirements.txt
 
-# 4. 의존성 설치
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 5. 소스 코드 복사
+# 앱 코드 복사
 COPY . .
 
-# 6. 포트 오픈 (문서용)
+# outputs 디렉토리 생성
+RUN mkdir -p outputs/txt2img
+
 EXPOSE 8000
 
-# 7. FastAPI 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

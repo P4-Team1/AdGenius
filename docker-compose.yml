@@ -1,5 +1,3 @@
-version: "3.12"
-
 services:
   backend:
     container_name: ads-backend
@@ -8,17 +6,51 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-    restart: always
+      - backend-data:/app/outputs
+    env_file:
+      - ./backend/.env
+    # GPU 자동 감지: GPU가 있으면 사용, 없으면 CPU로 자동 전환
+    # GPU 사용 시 NVIDIA Container Toolkit 필요
+    # GPU가 없으면 아래 deploy 블록을 주석 처리하세요
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # GPU가 없는 팀원은 이 서비스를 사용
+  # 실행: docker compose --profile cpu up --build -d
+  backend-cpu:
+    container_name: ads-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend-data:/app/outputs
+    env_file:
+      - ./backend/.env
+    profiles:
+      - cpu
+    restart: unless-stopped
 
   frontend:
     container_name: ads-frontend
     build:
       context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
     ports:
-      - "3000:3000"  # 8501 → 3000 (Next.js 포트)
-    environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8000  # 백엔드 URL 설정
+      - "3000:3000"
     depends_on:
-      - backend
-    restart: always
+      backend:
+        condition: service_started
+        required: false
+    restart: unless-stopped
+
+volumes:
+  backend-data:
