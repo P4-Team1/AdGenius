@@ -35,13 +35,19 @@ async def lifespan(app: FastAPI):
         print(f"❌ Error creating database tables: {e}")
     
     try:
-        # Flux 모델 미리 로드 (동기 함수)
-        print("🔧 Flux 모델 로딩 중...")
-        flux_service._load_model()
-        print("✅ Flux 모델 준비 완료")
+        # Flux 모델을 백그라운드에서 로드 (서버 시작을 블로킹하지 않음)
+        import threading
+        def _load_flux():
+            try:
+                print("🔧 Flux 모델 로딩 중... (백그라운드)")
+                flux_service._load_model()
+                print("✅ Flux 모델 준비 완료")
+            except Exception as e:
+                print(f"⚠️ Flux 모델 로딩 실패: {e}")
+                print("   이미지 생성 요청 시 자동으로 재시도됩니다.")
+        threading.Thread(target=_load_flux, daemon=True).start()
     except Exception as e:
-        print(f"⚠️ Flux 모델 로딩 실패: {e}")
-        print("   첫 요청 시 자동으로 로드됩니다.")
+        print(f"⚠️ Flux 백그라운드 로딩 시작 실패: {e}")
     
     yield
     
@@ -65,10 +71,14 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 개발용 - 프로덕션에서는 실제 도메인으로 변경 필요
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],  # GET, POST, PUT, DELETE, OPTIONS 등 모든 메서드 허용
-    allow_headers=["*"],  # Content-Type, Authorization 등 모든 헤더 허용
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include API router
