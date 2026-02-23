@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir torch torchvision --index-url https://download.py
 # 앱 코드 복사
 COPY . .
 
-# outputs 디렉토리 생성
-RUN mkdir -p outputs/txt2img
+# 필요 디렉토리 생성
+RUN mkdir -p outputs/txt2img static
 
 EXPOSE 8000
 

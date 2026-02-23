@@ -14,7 +14,7 @@ COPY requirements-cpu.txt .
 RUN pip install --no-cache-dir -r requirements-cpu.txt
 
 COPY . .
-RUN mkdir -p outputs/txt2img
+RUN mkdir -p outputs/txt2img static
 
 EXPOSE 8000
 
