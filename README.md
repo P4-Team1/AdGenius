@@ -37,7 +37,7 @@
 ### 1. 클론 및 환경변수 설정
 
 ```bash
-git clone https://github.com/<your-username>/AdsProject.git
+git clone -b oh https://github.com/<your-username>/AdsProject.git
 cd AdsProject
 cp backend/.env.example backend/.env
 ```
