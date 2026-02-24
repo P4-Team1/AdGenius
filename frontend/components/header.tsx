@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTheme } from "@/hooks/use-theme";
-import { useAuth } from "@/contexts/auth-context";
 import { ReactNode } from "react";
 
 interface HeaderProps {
@@ -24,7 +24,6 @@ export function Header({ showMenu = false, rightButtons }: HeaderProps) {
   };
 
   const themeIcon = mode === "light" ? "☀️" : mode === "dark" ? "🌙" : "💻";
-  const { isAuthenticated } = useAuth();
 
   const handleLogoClick = () => {
     router.push("/");
@@ -44,24 +43,24 @@ export function Header({ showMenu = false, rightButtons }: HeaderProps) {
           {/* 홈 페이지 메뉴 (showMenu가 true일 때만) */}
           {showMenu && (
             <div className="hidden md:flex gap-6">
-              <a
+              <Link
                 href="/#features"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
                 기능
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#platforms"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
                 플랫폼
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/#pricing"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
               >
                 가격
-              </a>
+              </Link>
             </div>
           )}
 

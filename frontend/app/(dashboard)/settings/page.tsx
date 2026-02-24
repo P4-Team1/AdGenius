@@ -7,12 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useTheme, type ThemeMode } from "@/hooks/use-theme";
 import { projectAPI } from "@/lib/api";
-import { useAuth } from "@/contexts/auth-context";
+
 
 export default function SettingsPage() {
   const router = useRouter();
   const { mode, setThemeMode } = useTheme();
-  const { logout } = useAuth();
+
   const [isDeletingProjects, setIsDeletingProjects] = useState(false);
 
   const themeOptions: { value: ThemeMode; label: string; icon: string }[] = [
