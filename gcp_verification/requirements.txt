@@ -1,0 +1,11 @@
+torch>=2.2.0
+git+https://github.com/huggingface/diffusers.git # Required for QwenImageEditPlusPipeline
+transformers>=4.48.0
+accelerate>=0.27.0
+sentencepiece
+protobuf
+websocket-client 
+huggingface_hub
+opencv-python-headless 
+pillow
+psutil

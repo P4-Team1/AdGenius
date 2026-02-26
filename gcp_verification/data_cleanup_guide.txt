@@ -1,0 +1,31 @@
+# Disk Cleanup Guide for GCP
+
+Your current Space (51GB free) is **sufficient** for the optimized models (Qwen ~13GB, Flux ~10GB), but if you want to free up more space, follow these steps.
+
+## 1. Check Largest Folders (In your Home Directory)
+Run this command to see what's taking up the most space:
+```bash
+du -h --max-depth=1 ~ | sort -hr
+```
+
+## 2. Check HuggingFace Cache (Usually the biggest culprit)
+HuggingFace stores downloaded models here. If you failed downloads before, they might be taking up space.
+```bash
+du -sh ~/.cache/huggingface
+```
+
+## 3. How to Delete the Cache
+If you want to **delete all downloaded models** and start fresh (safest way to reclaim space):
+```bash
+rm -rf ~/.cache/huggingface/hub
+```
+*Warning: This deletes ALL models. You will need to download them again.*
+
+## 4. Check Hidden Files
+Sometimes hidden folders like `.local` or `.cache` are large.
+```bash
+du -h --max-depth=1 ~/.cache | sort -hr
+```
+
+## Recommendation
+If `~/.cache/huggingface` is over 20-30GB, I recommend running command #3 to clear it, and then running the optimized `verify_models.py` again.
