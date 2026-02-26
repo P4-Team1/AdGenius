@@ -24,6 +24,14 @@ export default function StoresPage() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 수정 모달 상태
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingStore, setEditingStore] = useState<Store | null>(null);
+  const [editBrandName, setEditBrandName] = useState("");
+  const [editBrandTone, setEditBrandTone] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
   useEffect(() => {
     if (!authLoading) {
       if (!isAuthenticated) {
@@ -74,6 +82,42 @@ export default function StoresPage() {
       alert("가게 생성에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // 수정 모달 열기 — 기존 데이터를 폼에 채워넣기
+  const openEditModal = (store: Store) => {
+    setEditingStore(store);
+    setEditBrandName(store.brand_name);
+    setEditBrandTone(store.brand_tone || "");
+    setEditDescription(store.description || "");
+    setShowEditModal(true);
+  };
+
+  // 수정 API 호출
+  const handleEditStore = async () => {
+    if (!editBrandName.trim()) {
+      alert("브랜드 이름을 입력해주세요.");
+      return;
+    }
+    if (!editingStore) return;
+
+    try {
+      setIsEditing(true);
+      await storeAPI.update(editingStore.id, {
+        brand_name: editBrandName,
+        brand_tone: editBrandTone,
+        description: editDescription,
+      });
+
+      setShowEditModal(false);
+      setEditingStore(null);
+      await loadStores();
+    } catch (error) {
+      console.error("Failed to update store:", error);
+      alert("가게 수정에 실패했습니다.");
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -178,7 +222,7 @@ export default function StoresPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => alert("수정 기능 창 띄우기 (진행 예정)")}
+                      onClick={() => openEditModal(store)}
                     >
                       수정
                     </Button>
@@ -268,6 +312,83 @@ export default function StoresPage() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "등록 중..." : "가게 등록"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 가게 수정 모달 */}
+      {showEditModal && editingStore && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in duration-200"
+            onClick={() => !isEditing && setShowEditModal(false)}
+          />
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg animate-in zoom-in-95 duration-200">
+            <div className="bg-background border-2 border-border rounded-2xl shadow-2xl p-8">
+              <div className="mb-6">
+                <h2 className="text-3xl font-black mb-2">가게 정보 수정</h2>
+                <p className="text-muted-foreground">
+                  브랜드 정보를 수정하세요
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-brand-name">
+                    브랜드(가게) 이름 <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="edit-brand-name"
+                    placeholder="예: 현민 카페"
+                    className="h-12"
+                    value={editBrandName}
+                    onChange={(e) => setEditBrandName(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-brand-tone">브랜드 톤앤매너</Label>
+                  <Input
+                    id="edit-brand-tone"
+                    placeholder="예: 따뜻한, 전문적인, 친근한"
+                    className="h-12"
+                    value={editBrandTone}
+                    onChange={(e) => setEditBrandTone(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-store-description">가게 설명</Label>
+                  <textarea
+                    id="edit-store-description"
+                    placeholder="가게의 주요 특징이나 주력 상품을 설명해주세요"
+                    className="w-full px-4 py-3 rounded-lg border border-border bg-background resize-none text-base"
+                    rows={4}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={isEditing}
+                >
+                  취소
+                </Button>
+                <Button
+                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+                  onClick={handleEditStore}
+                  disabled={isEditing}
+                >
+                  {isEditing ? "수정 중..." : "수정 완료"}
                 </Button>
               </div>
             </div>

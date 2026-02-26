@@ -1,33 +1,30 @@
-'use client'
+"use client";
 
-import { Header } from '@/components/header'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
+import { Header } from "@/components/header";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const router = useRouter()
-  const { logout } = useAuth()
+  const router = useRouter();
+  const { logout } = useAuth();
 
   return (
     <>
       <Header
         rightButtons={
           <>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/projects')}
-            >
+            <Button variant="ghost" onClick={() => router.push("/stores")}>
+              가게 관리
+            </Button>
+            <Button variant="ghost" onClick={() => router.push("/projects")}>
               내 프로젝트
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/settings')}
-            >
+            <Button variant="ghost" onClick={() => router.push("/settings")}>
               설정
             </Button>
             <Button
@@ -39,9 +36,7 @@ export default function DashboardLayout({
           </>
         }
       />
-      <main className="min-h-screen pt-20 bg-background">
-        {children}
-      </main>
+      <main className="min-h-screen pt-20 bg-background">{children}</main>
     </>
-  )
+  );
 }

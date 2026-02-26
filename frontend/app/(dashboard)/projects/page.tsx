@@ -6,9 +6,68 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CreateProjectModal } from "@/components/create-project-modal";
-import { projectAPI } from "@/lib/api";
-import type { Project } from "@/types";
+import { projectAPI, contentAPI } from "@/lib/api";
+import type { Project, Content } from "@/types";
 import { useAuth } from "@/contexts/auth-context";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+// 프로젝트 썸네일 컴포넌트
+function ProjectThumbnail({
+  projectId,
+  status,
+}: {
+  projectId: number;
+  status: string;
+}) {
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchContents = async () => {
+      try {
+        const contents: Content[] = await contentAPI.getAll(projectId);
+        // 결과 이미지가 있는 최근 콘텐츠 찾기
+        const completedContent = contents.find((c) => c.result_image_path);
+        if (completedContent && completedContent.result_image_path) {
+          // 백엔드의 /images 정적 경로와 조합
+          const filename = completedContent.result_image_path.split("/").pop();
+          if (filename) {
+            setThumbnailUrl(`http://localhost:8000/images/${filename}`);
+          }
+        }
+      } catch (error) {
+        // 에러 무시 (썸네일 로드 실패 시 기본 UI 표시)
+      }
+    };
+    fetchContents();
+  }, [projectId]);
+
+  if (thumbnailUrl) {
+    return (
+      <div className="h-48 w-full relative overflow-hidden bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={thumbnailUrl}
+          alt="Project Thumbnail"
+          className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+    );
+  }
+
+  // 기본 UI (이미지가 없을 때)
+  return (
+    <div
+      className={`h-48 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center`}
+    >
+      <div className="text-center text-white">
+        <div className="text-6xl mb-2">📁</div>
+        <div className="text-xl font-bold uppercase">{status}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -35,8 +94,8 @@ export default function ProjectsPage() {
       setIsLoading(true);
       const data = await projectAPI.getAll();
       setProjects(data);
-    } catch (error) {
-      console.error("Failed to load projects:", error);
+    } catch {
+      console.error("Failed to load projects");
     } finally {
       setIsLoading(false);
     }
@@ -119,21 +178,14 @@ export default function ProjectsPage() {
         {filteredProjects.map((project) => (
           <Card
             key={project.id}
-            className="overflow-hidden hover:shadow-xl transition-all cursor-pointer border-2 hover:border-blue-600/50 group"
+            className="overflow-hidden hover:shadow-xl transition-all cursor-pointer border-2 hover:border-blue-600/50 group flex flex-col h-[380px]"
             onClick={() => router.push(`/projects/${project.id}`)}
           >
-            {/* 썸네일 (임시 색상) */}
-            <div
-              className={`h-48 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center`}
-            >
-              <div className="text-center text-white">
-                <div className="text-6xl mb-2">📁</div>
-                <div className="text-2xl font-bold">{project.status}</div>
-              </div>
-            </div>
+            {/* 동적 썸네일 컴포넌트 적용 */}
+            <ProjectThumbnail projectId={project.id} status={project.status} />
 
             {/* 정보 */}
-            <div className="p-6">
+            <div className="p-6 flex-1 flex flex-col bg-card">
               <h3 className="font-bold text-xl mb-2 group-hover:text-blue-600 transition-colors">
                 {project.title}
               </h3>
@@ -144,7 +196,7 @@ export default function ProjectsPage() {
                 </p>
               )}
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto pt-4 border-t border-border">
                 <span>{new Date(project.created_at).toLocaleDateString()}</span>
                 <div className="flex gap-2">
                   <Button

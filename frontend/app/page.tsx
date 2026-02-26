@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { useAuth } from "@/contexts/auth-context";
-import { projectAPI, storeAPI } from "@/lib/api";
+import { projectAPI, storeAPI, contentAPI } from "@/lib/api";
 import type { Project } from "@/types";
 
 function AuthenticatedDashboard() {
@@ -14,6 +14,7 @@ function AuthenticatedDashboard() {
   const { logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [storeCount, setStoreCount] = useState(0);
+  const [totalAds, setTotalAds] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -22,11 +23,27 @@ function AuthenticatedDashboard() {
         projectAPI.getAll(),
         storeAPI.getAll(),
       ]);
-      setProjects(Array.isArray(projectsData) ? projectsData : []);
+      const validProjects = Array.isArray(projectsData) ? projectsData : [];
+      setProjects(validProjects);
       setStoreCount(Array.isArray(storesData) ? storesData.length : 0);
+
+      // 전체 광고 생성 개수(Contents) 합산
+      let total = 0;
+      for (const p of validProjects) {
+        try {
+          const contents = await contentAPI.getAll(p.id);
+          if (Array.isArray(contents)) {
+            total += contents.length;
+          }
+        } catch {
+          // 에러 무시
+        }
+      }
+      setTotalAds(total);
     } catch {
       setProjects([]);
       setStoreCount(0);
+      setTotalAds(0);
     } finally {
       setLoading(false);
     }
@@ -89,13 +106,11 @@ function AuthenticatedDashboard() {
 
           <Card className="p-6">
             <div className="text-5xl mb-4">✅</div>
-            <h3 className="text-2xl font-bold mb-2">완료</h3>
+            <h3 className="text-2xl font-bold mb-2">생성된 광고</h3>
             <p className="text-4xl font-black text-green-500 mb-2">
-              {loading
-                ? "..."
-                : projects.filter((p) => p.status === "completed").length}
+              {loading ? "..." : totalAds}
             </p>
-            <p className="text-sm text-muted-foreground">완료된 프로젝트</p>
+            <p className="text-sm text-muted-foreground">총 누적 생성</p>
           </Card>
         </div>
 

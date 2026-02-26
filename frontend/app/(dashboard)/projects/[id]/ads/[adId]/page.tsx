@@ -39,7 +39,7 @@ export default function AdDetailPage() {
       ratio: "4:3",
       description: "신뢰감 있는 중고거래 사진",
       color: "from-orange-500 to-amber-500",
-      postUrl: "https://www.daangn.com/",
+      postUrl: "https://business.daangn.com/profile/login",
     },
     {
       id: "naver_blog",
