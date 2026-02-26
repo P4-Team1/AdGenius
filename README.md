@@ -3,6 +3,9 @@
 
 FastAPI 기반의 AI 마케팅 콘텐츠 생성 백엔드 서비스입니다. FLUX.1-schnell 모델을 사용하여 고품질 이미지를 생성하고, LLM을 통해 광고 문구를 최적화합니다.
 
+## 이상윤 협업 일지 링크
+https://www.notion.so/Daily-1-1-313d0a925d2480cc8796f9a7b391088d?source=copy_link
+
 ## 🚀 기술 스택
 
 - **Framework**: FastAPI 0.104.1
