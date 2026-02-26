@@ -1,2 +1,2 @@
-# AdsProject
-ㅁㄴㅇㄹ
+# AdGenius
+
